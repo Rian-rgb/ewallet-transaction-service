@@ -1,0 +1,148 @@
+basePath: /transaction/v1
+definitions:
+  errs.FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  helpers.BadRequestResponse:
+    properties:
+      code:
+        example: BAD_REQUEST
+        type: string
+      errors:
+        items:
+          $ref: '#/definitions/errs.FieldError'
+        type: array
+      message:
+        example: validation error
+        type: string
+    type: object
+  helpers.ErrorResponse:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  helpers.SuccessResponse:
+    properties:
+      code:
+        example: SUCCESS
+        type: string
+      data: {}
+      message:
+        type: string
+    type: object
+  transaction.Status:
+    enum:
+    - PENDING
+    - SUCCESS
+    - FAILED
+    - REVERSED
+    type: string
+    x-enum-varnames:
+    - Pending
+    - Success
+    - Failed
+    - Reversed
+  transaction.Type:
+    enum:
+    - TOPUP
+    - PURCHASE
+    - REFUND
+    type: string
+    x-enum-varnames:
+    - Topup
+    - Purchase
+    - Refund
+  transaction_dto.CreateTransactionRequest:
+    properties:
+      amount:
+        type: number
+      description:
+        type: string
+      transactionType:
+        allOf:
+        - $ref: '#/definitions/transaction.Type'
+        enum:
+        - TOPUP
+        - PURCHASE
+        - REFUND
+    required:
+    - amount
+    - description
+    - transactionType
+    type: object
+  transaction_dto.CreateTransactionResponse:
+    properties:
+      reference:
+        type: string
+      transactionStatus:
+        $ref: '#/definitions/transaction.Status'
+    type: object
+host: localhost:8082
+info:
+  contact:
+    email: rian3903@gmail.com
+    name: API Support
+  description: |-
+    API Service untuk m_transaction dompet digital pengguna (Transaction).
+    Fitur mencakup: Transaction.
+    <br/><b>Developer:</b> Muhammad Brilian Satria Utama
+    <b>Environment:</b> Development
+  license:
+    name: Internal Use Only
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: E-Wallet API - Mobile/Web
+  version: 1.0.0
+paths:
+  /create:
+    post:
+      consumes:
+      - application/json
+      description: Processes a new wallet transaction, updating the user's current
+        balance and generating a transaction record.
+      parameters:
+      - description: 'Insert your access external: Bearer <external>'
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Payload create wallet transaction user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/transaction_dto.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/helpers.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/transaction_dto.CreateTransactionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.BadRequestResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/helpers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrorResponse'
+      summary: Create Wallet Transaction  User
+schemes:
+- http
+- https
+swagger: "2.0"
