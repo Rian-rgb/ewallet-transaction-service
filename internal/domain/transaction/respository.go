@@ -1,7 +1,7 @@
 package transaction
 
 type IRepository interface {
-	Save(trx *Entity) error
-	FindByReference(reference string) (*Entity, error)
-	UpdateStatus(reference string, status string, additionalInfo string) error
+	Save(entity *Entity) error
+	//FindByReference(reference string) (transactionEntity *Entity, err error)
+	//UpdateStatus(reference string, status string, additionalInfo string) error
 }

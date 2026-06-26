@@ -9,33 +9,26 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {
-            "name": "API Support",
-            "email": "rian3903@gmail.com"
-        },
-        "license": {
-            "name": "Internal Use Only",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/create": {
+        "/transaction/create": {
             "post": {
-                "description": "Processes a new wallet transaction, updating the user's current balance and generating a transaction record.",
+                "description": "Processes a new transaction, updating the user's current balance and generating a transaction record.",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Create Wallet Transaction  User",
+                "summary": "Create Transaction",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Insert your access external: Bearer \u003cexternal\u003e",
+                        "description": "Bearer \u003ctoken\u003e",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
@@ -46,23 +39,23 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/transaction_dto.CreateTransactionRequest"
+                            "$ref": "#/definitions/ewallet-transaction_internal_dto_transaction_dto.CreateTransactionRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/helper.SuccessResponse"
+                                    "$ref": "#/definitions/response.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/transaction_dto.CreateTransactionResponse"
+                                            "$ref": "#/definitions/ewallet-transaction_internal_dto_transaction_dto.CreateTransactionResponse"
                                         }
                                     }
                                 }
@@ -72,19 +65,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/helper.BadRequestResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/helper.ErrorResponse"
+                            "$ref": "#/definitions/response.BadRequestResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/helper.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -92,76 +79,42 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "errs.FieldError": {
-            "type": "object",
-            "properties": {
-                "field": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "helper.BadRequestResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "BAD_REQUEST"
-                },
-                "errors": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/errs.FieldError"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "validation error"
-                }
-            }
-        },
-        "helper.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "helper.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "SUCCESS"
-                },
-                "data": {},
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "transaction.Status": {
+        "errors.Code": {
             "type": "string",
             "enum": [
-                "PENDING",
-                "SUCCESS",
-                "FAILED",
-                "REVERSED"
+                "UNKNOWN_ERROR",
+                "INTERNAL_SERVER_ERROR",
+                "BAD_REQUEST",
+                "UNAUTHORIZED",
+                "FORBIDDEN",
+                "NOT_FOUND",
+                "USER_NOT_FOUND",
+                "SESSION_NOT_FOUND",
+                "INVALID_PASSWORD",
+                "WALLET_NOT_FOUND",
+                "INVALID_STATUS_TRANSITION",
+                "DUPLICATE_REFERENCE",
+                "TRANSACTION_NOT_FOUND",
+                "INSUFFICIENT_BALANCE"
             ],
             "x-enum-varnames": [
-                "Pending",
-                "Success",
-                "Failed",
-                "Reversed"
+                "ErrCodeUnknownError",
+                "ErrCodeInternalServerError",
+                "ErrCodeBadRequest",
+                "ErrCodeUnauthorized",
+                "ErrCodeForbidden",
+                "ErrCodeNotFound",
+                "ErrCodeUserNotFound",
+                "ErrCodeSessionNotFound",
+                "ErrCodeInvalidPassword",
+                "ErrCodeWalletNotFound",
+                "ErrCodeInvalidStatusTransition",
+                "ErrCodeDuplicateReference",
+                "ErrCodeTransactionNotFound",
+                "ErrCodeInsufficientBalance"
             ]
         },
-        "transaction.Type": {
+        "ewallet-transaction_internal_domain_transaction.Type": {
             "type": "string",
             "enum": [
                 "TOPUP",
@@ -174,12 +127,12 @@ const docTemplate = `{
                 "Refund"
             ]
         },
-        "transaction_dto.CreateTransactionRequest": {
+        "ewallet-transaction_internal_dto_transaction_dto.CreateTransactionRequest": {
             "type": "object",
             "required": [
                 "amount",
                 "description",
-                "transactionType"
+                "transaction_type"
             ],
             "properties": {
                 "amount": {
@@ -188,7 +141,7 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "transactionType": {
+                "transaction_type": {
                     "enum": [
                         "TOPUP",
                         "PURCHASE",
@@ -196,20 +149,69 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/transaction.Type"
+                            "$ref": "#/definitions/ewallet-transaction_internal_domain_transaction.Type"
                         }
                     ]
                 }
             }
         },
-        "transaction_dto.CreateTransactionResponse": {
+        "ewallet-transaction_internal_dto_transaction_dto.CreateTransactionResponse": {
             "type": "object",
             "properties": {
                 "reference": {
                     "type": "string"
                 },
-                "transactionStatus": {
-                    "$ref": "#/definitions/transaction.Status"
+                "transaction_status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BadRequestResponse": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "$ref": "#/definitions/errors.Code"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ValidationErrorField"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "$ref": "#/definitions/errors.Code"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "meta": {}
+            }
+        },
+        "response.ValidationErrorField": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         }
@@ -218,12 +220,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0.0",
+	Version:          "0.0",
 	Host:             "localhost:8082",
-	BasePath:         "/transaction/v1",
-	Schemes:          []string{"http", "https"},
-	Title:            "E-Wallet API - Mobile/Web",
-	Description:      "API Service untuk m_transaction dompet digital pengguna (Transaction).\nFitur mencakup: Transaction.\n<br/><b>Developer:</b> Muhammad Brilian Satria Utama\n<b>Environment:</b> Development",
+	BasePath:         "/api/v1",
+	Schemes:          []string{},
+	Title:            "E Wallet API (Transaction Service)",
+	Description:      "API Service for managing transaction.\nFeatures include: craate transaction.\n<br/><b>Developer:</b> Muhammad Brilian Satria Utama\n<b>Environment:</b> Development",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

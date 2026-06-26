@@ -1,4 +1,4 @@
-package test_test
+package handler_test
 
 import (
 	"bytes"
@@ -7,8 +7,8 @@ import (
 	"ewallet-transaction/external/user"
 	"ewallet-transaction/helper"
 	"ewallet-transaction/internal/domain/transaction"
+	"ewallet-transaction/internal/dto/transaction_dto"
 	"ewallet-transaction/internal/handler"
-	"ewallet-transaction/internal/model/transaction_dto"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"

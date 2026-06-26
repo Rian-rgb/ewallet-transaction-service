@@ -7,12 +7,3 @@ const (
 	Purchase Type = "PURCHASE"
 	Refund   Type = "REFUND"
 )
-
-func (t Type) IsValid() bool {
-	switch t {
-	case Topup, Purchase, Refund:
-		return true
-	default:
-		return false
-	}
-}

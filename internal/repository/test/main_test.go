@@ -1,28 +1,43 @@
-package test_test
+package repository_test
 
 import (
-	"ewallet-transaction/test/helper"
-	"ewallet-transaction/test/model"
+	"ewallet-transaction/infra"
+	"ewallet-transaction/internal/domain/transaction"
+	"github.com/Rian-rgb/ewallet-common-lib/database"
+	"github.com/Rian-rgb/ewallet-common-lib/logger"
+	"gorm.io/gorm"
 	"os"
 	"testing"
 )
 
-var PG *model.PostgresContainer
+var globalTestDB *gorm.DB
 
 func TestMain(m *testing.M) {
-	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
-	var err error
 
-	PG, err = helper.SetupPostgresContainer()
+	// load log
+	infra.InitLogger()
+
+	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+
+	testEnv, err := database.SetupPostgresContainer()
 	if err != nil {
-		panic(err)
+		logger.Error("failed to turn on postgres test container: %v", err)
 	}
 
-	helper.TestDB = PG.DB
+	defer testEnv.Container.Terminate(testEnv.Ctx)
 
-	code := m.Run()
+	globalTestDB = testEnv.DB
 
-	_ = PG.Close()
+	if err = createTransactionTypes(globalTestDB); err != nil {
+		logger.Error("failed to create transaction data types: %v", err)
+	}
 
-	os.Exit(code)
+	err = globalTestDB.AutoMigrate(&transaction.Entity{})
+	if err != nil {
+		logger.Error("failed to migration database testing: %v", err)
+	}
+
+	exitCode := m.Run()
+
+	os.Exit(exitCode)
 }

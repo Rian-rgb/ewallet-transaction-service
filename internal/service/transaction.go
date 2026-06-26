@@ -1,23 +1,26 @@
 package service
 
 import (
+	"context"
 	"ewallet-transaction/internal/domain/transaction"
-	"ewallet-transaction/internal/errs"
+	"ewallet-transaction/internal/errors"
+	"github.com/Rian-rgb/ewallet-common-lib/logger"
 )
 
 type TransactionService struct {
 	TransactionRepo transaction.IRepository
 }
 
-func (s *TransactionService) CreateTransaction(tx *transaction.Entity) (*transaction.Entity, error) {
+func (svc *TransactionService) CreateTransaction(
+	ctx context.Context,
+	transactionEntity *transaction.Entity,
+) (*transaction.Entity, error) {
 
-	err := s.TransactionRepo.Save(tx)
+	err := svc.TransactionRepo.Save(transactionEntity)
 	if err != nil {
-		return nil, errs.New(
-			errs.ErrInternal,
-			"failed to create transaction",
-		)
+		logger.WithContext(ctx).Error("failed to save transaction: ", err)
+		return nil, errors.ErrInternalServerError
 	}
 
-	return tx, nil
+	return transactionEntity, nil
 }

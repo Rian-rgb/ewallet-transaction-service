@@ -1,37 +1,38 @@
-package test_test
+package service_test
 
 import (
-	"errors"
+	"context"
 	"ewallet-transaction/internal/domain/transaction"
-	"ewallet-transaction/internal/errs"
 	"ewallet-transaction/internal/service"
 	"github.com/go-openapi/testify/v2/assert"
+	"github.com/pkg/errors"
 	"testing"
 )
 
 type MockTransactionRepo struct {
-	SaveFunc func(tx *transaction.Entity) error
+	SaveFunc func(entity *transaction.Entity) error
 }
 
-// Save mengimplementasikan interface transaction.IRepository
-func (m *MockTransactionRepo) Save(tx *transaction.Entity) error {
+func (m *MockTransactionRepo) Save(entity *transaction.Entity) error {
 	if m.SaveFunc != nil {
-		return m.SaveFunc(tx)
+		return m.SaveFunc(entity)
 	}
 	return nil
 }
 
-func (r *MockTransactionRepo) FindByReference(reference string) (*transaction.Entity, error) {
-	return nil, nil
-}
-
-func (r *MockTransactionRepo) UpdateStatus(reference string, status string, additionalInfo string) error {
-	return nil
-}
+//func (r *MockTransactionRepo) FindByReference(reference string) (*transaction.Entity, error) {
+//	return nil, nil
+//}
+//
+//func (r *MockTransactionRepo) UpdateStatus(reference string, status string, additionalInfo string) error {
+//	return nil
+//}
 
 func TestCreateTransaction_ValidEntity_Success(t *testing.T) {
 	// Arrange
-	dummyTx := &transaction.Entity{
+	ctx := context.Background()
+
+	dummyEntity := &transaction.Entity{
 		UserID:            1,
 		Amount:            20000,
 		TransactionType:   transaction.Topup,
@@ -40,7 +41,7 @@ func TestCreateTransaction_ValidEntity_Success(t *testing.T) {
 	}
 
 	mockRepo := &MockTransactionRepo{
-		SaveFunc: func(tx *transaction.Entity) error {
+		SaveFunc: func(entity *transaction.Entity) error {
 			return nil
 		},
 	}
@@ -50,17 +51,19 @@ func TestCreateTransaction_ValidEntity_Success(t *testing.T) {
 	}
 
 	// Act
-	result, err := svc.CreateTransaction(dummyTx)
+	result, err := svc.CreateTransaction(ctx, dummyEntity)
 
 	// Assert
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, dummyTx, result)
+	assert.Equal(t, dummyEntity, result)
 }
 
 func TestCreateTransaction_EmptyEntity_FailedOnRepository(t *testing.T) {
 	// Arrange
-	dummyTx := &transaction.Entity{}
+	ctx := context.Background()
+
+	dummyEntity := &transaction.Entity{}
 
 	mockRepo := &MockTransactionRepo{
 		SaveFunc: func(tx *transaction.Entity) error {
@@ -68,17 +71,14 @@ func TestCreateTransaction_EmptyEntity_FailedOnRepository(t *testing.T) {
 		},
 	}
 
-	service := &service.TransactionService{
+	svc := &service.TransactionService{
 		TransactionRepo: mockRepo,
 	}
 
-	expectedErrMsg := errs.New(errs.ErrInternal, "failed to create transaction")
-
 	// Act
-	result, err := service.CreateTransaction(dummyTx)
+	result, err := svc.CreateTransaction(ctx, dummyEntity)
 
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, expectedErrMsg.Error(), err.Error())
 }

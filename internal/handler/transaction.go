@@ -1,82 +1,69 @@
 package handler
 
 import (
-	"ewallet-transaction/constan"
-	"ewallet-transaction/external/user"
-	"ewallet-transaction/helper"
 	"ewallet-transaction/internal/domain/transaction"
-	"ewallet-transaction/internal/errs"
-	"ewallet-transaction/internal/model/transaction_dto"
+	"ewallet-transaction/internal/dto/transaction_dto"
+	"ewallet-transaction/internal/errors"
+	appErrors "github.com/Rian-rgb/ewallet-common-lib/errors"
+	"github.com/Rian-rgb/ewallet-common-lib/logger"
+	"github.com/Rian-rgb/ewallet-common-lib/response"
+	"github.com/Rian-rgb/ewallet-common-lib/security"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type TransactionHandler struct {
 	TransactionService transaction.IService
 }
 
-// @Summary Create Wallet Transaction  User
-// @Description Processes a new wallet transaction, updating the user's current balance and generating a transaction record.
+// @Summary Create Transaction
+// @Description Processes a new transaction, updating the user's current balance and generating a transaction record.
 // @Accept       json
 // @Produce      json
-// @Param        Authorization  header    string  true  "Insert your access external: Bearer <external>"
+// @Param        Authorization  header  string  true  "Bearer <token>"
 // @Param        request  body      transaction_dto.CreateTransactionRequest  true  "Payload create wallet transaction user"
-// @Success      200      {object}  helper.SuccessResponse{data=transaction_dto.CreateTransactionResponse}
-// @Failure      400      {object}  helper.BadRequestResponse
-// @Failure      401      {object}  helper.ErrorResponse
-// @Failure      500      {object}  helper.ErrorResponse
-// @Router       /create [post]
-func (api *TransactionHandler) Create(c *gin.Context) {
+// @Success      201      {object}  response.SuccessResponse{data=transaction_dto.CreateTransactionResponse}
+// @Failure      400      {object}  response.BadRequestResponse
+// @Failure      500      {object}  response.ErrorResponse
+// @Router       /transaction/create [post]
+func (hdl *TransactionHandler) Create(ctx *gin.Context) {
 	var (
-		log = helper.Logger
-		req transaction_dto.CreateTransactionRequest
+		req                 transaction_dto.CreateTransactionRequest
+		errCodeUnauthorized = appErrors.ErrCodeUnauthorized
+		codeBadRequest      = appErrors.ErrCodeBadRequest
 	)
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		//log.Error("failed to parse request: ", err)
-		helper.SendResponseBadRequest(c, errs.FromValidator(err))
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logger.WithContext(ctx).Error("failed to parse JSON request: ", err)
+		response.SendBadRequest(ctx, codeBadRequest, response.InvalidJSONFormatMessage, nil)
 		return
 	}
 
-	token, ok := c.Get("external")
-	if !ok || token == nil {
-		log.Error("failed to get external data")
-		helper.SendResponseError(c, errs.New(
-			errs.ErrUnauthorized,
-			"unauthorized",
-		))
+	errFields := req.Validate()
+	if errFields != nil {
+		logger.WithContext(ctx).Warn("request body validation failed")
+		response.SendBadRequest(ctx, codeBadRequest, response.InvalidRequestMessage, errFields)
 		return
 	}
 
-	tokenData, ok := token.(user.Token)
-	if !ok {
-		log.Error("failed to parse external data")
-		helper.SendResponseError(c, errs.New(
-			errs.ErrUnauthorized,
-			"unauthorized",
-		))
+	userData, exists := security.GetGinToken(ctx)
+	if !exists {
+		logger.WithContext(ctx).Error("token user data no exists: ", userData)
+		response.SendError(ctx, errCodeUnauthorized.ToHTTPStatus(), errCodeUnauthorized, response.InvalidTokenMessage)
 		return
 	}
 
-	if !transaction.Type.IsValid(req.TransactionType) {
-		log.Error("invalid transaction type")
-		helper.SendResponseError(c, errs.New(
-			errs.ErrBadRequest,
-			"invalid transaction type",
-		))
-		return
-	}
-
-	result, err := api.TransactionService.CreateTransaction(req.ToModel(int(tokenData.UserID)))
+	transactionEntity := req.ToEntity(userData.UserID)
+	result, err := hdl.TransactionService.CreateTransaction(ctx, transactionEntity)
 	if err != nil {
-		log.Error("failed to create transaction: ", err)
-		helper.SendResponseError(c, err)
+		errors.HandleServiceError(ctx, err)
 		return
 	}
 
 	resp := transaction_dto.CreateTransactionResponse{
 		Reference:         result.Reference,
-		TransactionStatus: result.TransactionStatus,
+		TransactionStatus: string(result.TransactionStatus),
 	}
 
-	helper.SendResponseSuccess(c, "Transaction "+constan.MsgCreated, resp)
+	response.SendSuccess(ctx, http.StatusCreated, response.SuccessMessage, resp)
 }

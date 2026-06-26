@@ -1,9 +1,8 @@
-package test_test
+package repository_test
 
 import (
 	"ewallet-transaction/internal/domain/transaction"
 	"ewallet-transaction/internal/repository"
-	"ewallet-transaction/test/helper"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -11,10 +10,9 @@ import (
 
 func TestSaveTransaction_ValidEntity_ReturnsSuccess(t *testing.T) {
 	// Arrange
-	testDB := helper.SetupTestTX(t)
-	repo := repository.TransactionRepo{DB: testDB}
+	repo := repository.TransactionRepo{DB: globalTestDB}
 
-	inputTrx := &transaction.Entity{
+	dummyEntity := &transaction.Entity{
 		ID:                1,
 		UserID:            2,
 		Amount:            150000,
@@ -25,24 +23,23 @@ func TestSaveTransaction_ValidEntity_ReturnsSuccess(t *testing.T) {
 	}
 
 	// Act
-	err := repo.Save(inputTrx)
+	err := repo.Save(dummyEntity)
 
-	var savedTrx transaction.Entity
-	errFetch := testDB.First(&savedTrx, "id = ?", inputTrx.ID).Error
+	var savedEntity transaction.Entity
+	errFetch := globalTestDB.First(&savedEntity, "id = ?", dummyEntity.ID).Error
 
 	// Assert
 	assert.NoError(t, err)
 	assert.NoError(t, errFetch)
-	assert.Equal(t, inputTrx.Amount, savedTrx.Amount)
-	assert.Equal(t, inputTrx.TransactionStatus, savedTrx.TransactionStatus)
+	assert.Equal(t, dummyEntity.Amount, savedEntity.Amount)
+	assert.Equal(t, dummyEntity.TransactionStatus, savedEntity.TransactionStatus)
 }
 
 func TestSaveTransaction_DuplicateID_ReturnsFailed(t *testing.T) {
 	// Arrange
-	testDB := helper.SetupTestTX(t)
-	repo := repository.TransactionRepo{DB: testDB}
+	repo := repository.TransactionRepo{DB: globalTestDB}
 
-	inputTrx := &transaction.Entity{
+	dummyEntity := &transaction.Entity{
 		ID:                1,
 		UserID:            2,
 		Amount:            150000,
@@ -53,9 +50,9 @@ func TestSaveTransaction_DuplicateID_ReturnsFailed(t *testing.T) {
 	}
 
 	// Act
-	err := repo.Save(inputTrx)
+	err := repo.Save(dummyEntity)
 
-	errDuplicateID := testDB.Create(inputTrx).Error
+	errDuplicateID := globalTestDB.Create(dummyEntity).Error
 
 	// Assert
 	assert.NoError(t, err)

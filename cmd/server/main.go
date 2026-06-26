@@ -1,0 +1,41 @@
+package main
+
+import (
+	"ewallet-transaction/infra"
+	"ewallet-transaction/infra/grpc"
+	"ewallet-transaction/internal/http"
+)
+
+//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
+// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+
+func main() {
+
+	// load config
+	infra.InitConfig()
+
+	// load log
+	infra.InitLogger()
+
+	// load db
+	postgresDB := infra.InitPostgresql()
+
+	// load redis
+	redisRepo := infra.InitRedis()
+
+	// run grpc
+	gRPCRegistry, cleanup := grpc.NewConnRegistry()
+	defer cleanup()
+
+	appDeps := &infra.AppDependencies{
+		PostgresDB:   postgresDB,
+		RedisRepo:    redisRepo,
+		GrpcRegistry: gRPCRegistry,
+	}
+
+	// Inject dependency
+	dependencies := infra.DependencyInject(appDeps)
+
+	// run http
+	http.Serve(dependencies, appDeps)
+}
