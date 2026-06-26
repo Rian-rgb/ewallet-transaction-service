@@ -4,28 +4,35 @@ import (
 	"ewallet-transaction/internal/domain/transaction"
 	"ewallet-transaction/internal/dto/transaction_dto"
 	"ewallet-transaction/internal/errors"
+	"net/http"
+
 	appErrors "github.com/Rian-rgb/ewallet-common-lib/errors"
 	"github.com/Rian-rgb/ewallet-common-lib/logger"
 	"github.com/Rian-rgb/ewallet-common-lib/response"
 	"github.com/Rian-rgb/ewallet-common-lib/security"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type TransactionHandler struct {
 	TransactionService transaction.IService
 }
 
-// @Summary Create Transaction
-// @Description Processes a new transaction, updating the user's current balance and generating a transaction record.
-// @Accept       json
-// @Produce      json
-// @Param        Authorization  header  string  true  "Bearer <token>"
-// @Param        request  body      transaction_dto.CreateTransactionRequest  true  "Payload create wallet transaction user"
-// @Success      201      {object}  response.SuccessResponse{data=transaction_dto.CreateTransactionResponse}
-// @Failure      400      {object}  response.BadRequestResponse
-// @Failure      500      {object}  response.ErrorResponse
-// @Router       /transaction/create [post]
+// @Summary		Create Transaction
+// @Description	Processes a new transaction, updating the user's current balance and generating a transaction record.
+// @Tags			Transaction
+// @Accept			json
+// @Produce		json
+//
+// @Param			Authorization	header		string																		true	"Bearer <token>"
+// @Param			request			body		transaction_dto.CreateTransactionRequest									true	"Payload create transaction"
+//
+// @Success		201				{object}	response.SuccessResponse{data=transaction_dto.CreateTransactionResponse}	"Created"
+// @Failure		400				{object}	response.BadRequestResponse													"Bad Request"
+// @Failure		401				{object}	response.ErrorResponse														"Unauthorized"
+// @Failure		500				{object}	response.ErrorResponse														"Internal Server Error"
+//
+// @Security		BearerAuth
+// @Router			/transaction/create [post]
 func (hdl *TransactionHandler) Create(ctx *gin.Context) {
 	var (
 		req                 transaction_dto.CreateTransactionRequest

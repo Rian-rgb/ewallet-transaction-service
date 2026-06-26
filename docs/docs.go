@@ -17,12 +17,20 @@ const docTemplate = `{
     "paths": {
         "/transaction/create": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Processes a new transaction, updating the user's current balance and generating a transaction record.",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Transaction"
                 ],
                 "summary": "Create Transaction",
                 "parameters": [
@@ -34,7 +42,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Payload create wallet transaction user",
+                        "description": "Payload create transaction",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -66,6 +74,12 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.BadRequestResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
@@ -136,10 +150,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "amount": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 10000
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Top up to buy internet package"
                 },
                 "transaction_type": {
                     "enum": [
@@ -151,7 +167,8 @@ const docTemplate = `{
                         {
                             "$ref": "#/definitions/ewallet-transaction_internal_domain_transaction.Type"
                         }
-                    ]
+                    ],
+                    "example": "TOPUP"
                 }
             }
         },
@@ -225,7 +242,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "E Wallet API (Transaction Service)",
-	Description:      "API Service for managing transaction.\nFeatures include: craate transaction.\n<br/><b>Developer:</b> Muhammad Brilian Satria Utama\n<b>Environment:</b> Development",
+	Description:      "API Service for managing transaction.\n<br/><b>Developer:</b> Muhammad Brilian Satria Utama\n<b>Environment:</b> Development",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

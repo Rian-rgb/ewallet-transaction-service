@@ -1,66 +1,63 @@
 {
-    "schemes": [
-        "http",
-        "https"
-    ],
     "swagger": "2.0",
     "info": {
-        "description": "API Service untuk m_transaction dompet digital pengguna (Transaction).\nFitur mencakup: Transaction.\n\u003cbr/\u003e\u003cb\u003eDeveloper:\u003c/b\u003e Muhammad Brilian Satria Utama\n\u003cb\u003eEnvironment:\u003c/b\u003e Development",
-        "title": "E-Wallet API - Mobile/Web",
-        "contact": {
-            "name": "API Support",
-            "email": "rian3903@gmail.com"
-        },
-        "license": {
-            "name": "Internal Use Only",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
-        "version": "1.0.0"
+        "description": "API Service for managing transaction.\n\u003cbr/\u003e\u003cb\u003eDeveloper:\u003c/b\u003e Muhammad Brilian Satria Utama\n\u003cb\u003eEnvironment:\u003c/b\u003e Development",
+        "title": "E Wallet API (Transaction Service)",
+        "contact": {},
+        "version": "0.0"
     },
     "host": "localhost:8082",
-    "basePath": "/transaction/v1",
+    "basePath": "/api/v1",
     "paths": {
-        "/create": {
+        "/transaction/create": {
             "post": {
-                "description": "Processes a new wallet transaction, updating the user's current balance and generating a transaction record.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Processes a new transaction, updating the user's current balance and generating a transaction record.",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Create Wallet Transaction  User",
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "Create Transaction",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Insert your access external: Bearer \u003cexternal\u003e",
+                        "description": "Bearer \u003ctoken\u003e",
                         "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
                     {
-                        "description": "Payload create wallet transaction user",
+                        "description": "Payload create transaction",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/transaction_dto.CreateTransactionRequest"
+                            "$ref": "#/definitions/ewallet-transaction_internal_dto_transaction_dto.CreateTransactionRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/helpers.SuccessResponse"
+                                    "$ref": "#/definitions/response.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/transaction_dto.CreateTransactionResponse"
+                                            "$ref": "#/definitions/ewallet-transaction_internal_dto_transaction_dto.CreateTransactionResponse"
                                         }
                                     }
                                 }
@@ -70,19 +67,19 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/helpers.BadRequestResponse"
+                            "$ref": "#/definitions/response.BadRequestResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/helpers.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/helpers.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -90,76 +87,42 @@
         }
     },
     "definitions": {
-        "errs.FieldError": {
-            "type": "object",
-            "properties": {
-                "field": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "helpers.BadRequestResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "BAD_REQUEST"
-                },
-                "errors": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/errs.FieldError"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "validation error"
-                }
-            }
-        },
-        "helpers.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "helpers.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "SUCCESS"
-                },
-                "data": {},
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "transaction.Status": {
+        "errors.Code": {
             "type": "string",
             "enum": [
-                "PENDING",
-                "SUCCESS",
-                "FAILED",
-                "REVERSED"
+                "UNKNOWN_ERROR",
+                "INTERNAL_SERVER_ERROR",
+                "BAD_REQUEST",
+                "UNAUTHORIZED",
+                "FORBIDDEN",
+                "NOT_FOUND",
+                "USER_NOT_FOUND",
+                "SESSION_NOT_FOUND",
+                "INVALID_PASSWORD",
+                "WALLET_NOT_FOUND",
+                "INVALID_STATUS_TRANSITION",
+                "DUPLICATE_REFERENCE",
+                "TRANSACTION_NOT_FOUND",
+                "INSUFFICIENT_BALANCE"
             ],
             "x-enum-varnames": [
-                "Pending",
-                "Success",
-                "Failed",
-                "Reversed"
+                "ErrCodeUnknownError",
+                "ErrCodeInternalServerError",
+                "ErrCodeBadRequest",
+                "ErrCodeUnauthorized",
+                "ErrCodeForbidden",
+                "ErrCodeNotFound",
+                "ErrCodeUserNotFound",
+                "ErrCodeSessionNotFound",
+                "ErrCodeInvalidPassword",
+                "ErrCodeWalletNotFound",
+                "ErrCodeInvalidStatusTransition",
+                "ErrCodeDuplicateReference",
+                "ErrCodeTransactionNotFound",
+                "ErrCodeInsufficientBalance"
             ]
         },
-        "transaction.Type": {
+        "ewallet-transaction_internal_domain_transaction.Type": {
             "type": "string",
             "enum": [
                 "TOPUP",
@@ -172,21 +135,23 @@
                 "Refund"
             ]
         },
-        "transaction_dto.CreateTransactionRequest": {
+        "ewallet-transaction_internal_dto_transaction_dto.CreateTransactionRequest": {
             "type": "object",
             "required": [
                 "amount",
                 "description",
-                "transactionType"
+                "transaction_type"
             ],
             "properties": {
                 "amount": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 10000
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Top up to buy internet package"
                 },
-                "transactionType": {
+                "transaction_type": {
                     "enum": [
                         "TOPUP",
                         "PURCHASE",
@@ -194,20 +159,70 @@
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/transaction.Type"
+                            "$ref": "#/definitions/ewallet-transaction_internal_domain_transaction.Type"
                         }
-                    ]
+                    ],
+                    "example": "TOPUP"
                 }
             }
         },
-        "transaction_dto.CreateTransactionResponse": {
+        "ewallet-transaction_internal_dto_transaction_dto.CreateTransactionResponse": {
             "type": "object",
             "properties": {
                 "reference": {
                     "type": "string"
                 },
-                "transactionStatus": {
-                    "$ref": "#/definitions/transaction.Status"
+                "transaction_status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BadRequestResponse": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "$ref": "#/definitions/errors.Code"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ValidationErrorField"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "$ref": "#/definitions/errors.Code"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "meta": {}
+            }
+        },
+        "response.ValidationErrorField": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         }

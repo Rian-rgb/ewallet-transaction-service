@@ -1,54 +1,38 @@
-basePath: /transaction/v1
+basePath: /api/v1
 definitions:
-  errs.FieldError:
-    properties:
-      field:
-        type: string
-      message:
-        type: string
-    type: object
-  helpers.BadRequestResponse:
-    properties:
-      code:
-        example: BAD_REQUEST
-        type: string
-      errors:
-        items:
-          $ref: '#/definitions/errs.FieldError'
-        type: array
-      message:
-        example: validation error
-        type: string
-    type: object
-  helpers.ErrorResponse:
-    properties:
-      code:
-        type: string
-      message:
-        type: string
-    type: object
-  helpers.SuccessResponse:
-    properties:
-      code:
-        example: SUCCESS
-        type: string
-      data: {}
-      message:
-        type: string
-    type: object
-  transaction.Status:
+  errors.Code:
     enum:
-    - PENDING
-    - SUCCESS
-    - FAILED
-    - REVERSED
+    - UNKNOWN_ERROR
+    - INTERNAL_SERVER_ERROR
+    - BAD_REQUEST
+    - UNAUTHORIZED
+    - FORBIDDEN
+    - NOT_FOUND
+    - USER_NOT_FOUND
+    - SESSION_NOT_FOUND
+    - INVALID_PASSWORD
+    - WALLET_NOT_FOUND
+    - INVALID_STATUS_TRANSITION
+    - DUPLICATE_REFERENCE
+    - TRANSACTION_NOT_FOUND
+    - INSUFFICIENT_BALANCE
     type: string
     x-enum-varnames:
-    - Pending
-    - Success
-    - Failed
-    - Reversed
-  transaction.Type:
+    - ErrCodeUnknownError
+    - ErrCodeInternalServerError
+    - ErrCodeBadRequest
+    - ErrCodeUnauthorized
+    - ErrCodeForbidden
+    - ErrCodeNotFound
+    - ErrCodeUserNotFound
+    - ErrCodeSessionNotFound
+    - ErrCodeInvalidPassword
+    - ErrCodeWalletNotFound
+    - ErrCodeInvalidStatusTransition
+    - ErrCodeDuplicateReference
+    - ErrCodeTransactionNotFound
+    - ErrCodeInsufficientBalance
+  ewallet-transaction_internal_domain_transaction.Type:
     enum:
     - TOPUP
     - PURCHASE
@@ -58,91 +42,121 @@ definitions:
     - Topup
     - Purchase
     - Refund
-  transaction_dto.CreateTransactionRequest:
+  ewallet-transaction_internal_dto_transaction_dto.CreateTransactionRequest:
     properties:
       amount:
+        example: 10000
         type: number
       description:
+        example: Top up to buy internet package
         type: string
-      transactionType:
+      transaction_type:
         allOf:
-        - $ref: '#/definitions/transaction.Type'
+        - $ref: '#/definitions/ewallet-transaction_internal_domain_transaction.Type'
         enum:
         - TOPUP
         - PURCHASE
         - REFUND
+        example: TOPUP
     required:
     - amount
     - description
-    - transactionType
+    - transaction_type
     type: object
-  transaction_dto.CreateTransactionResponse:
+  ewallet-transaction_internal_dto_transaction_dto.CreateTransactionResponse:
     properties:
       reference:
         type: string
-      transactionStatus:
-        $ref: '#/definitions/transaction.Status'
+      transaction_status:
+        type: string
+    type: object
+  response.BadRequestResponse:
+    properties:
+      error_code:
+        $ref: '#/definitions/errors.Code'
+      errors:
+        items:
+          $ref: '#/definitions/response.ValidationErrorField'
+        type: array
+      message:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error_code:
+        $ref: '#/definitions/errors.Code'
+      message:
+        type: string
+    type: object
+  response.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      meta: {}
+    type: object
+  response.ValidationErrorField:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
     type: object
 host: localhost:8082
 info:
-  contact:
-    email: rian3903@gmail.com
-    name: API Support
+  contact: {}
   description: |-
-    API Service untuk m_transaction dompet digital pengguna (Transaction).
-    Fitur mencakup: Transaction.
+    API Service for managing transaction.
     <br/><b>Developer:</b> Muhammad Brilian Satria Utama
     <b>Environment:</b> Development
-  license:
-    name: Internal Use Only
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  title: E-Wallet API - Mobile/Web
-  version: 1.0.0
+  title: E Wallet API (Transaction Service)
+  version: "0.0"
 paths:
-  /create:
+  /transaction/create:
     post:
       consumes:
       - application/json
-      description: Processes a new wallet transaction, updating the user's current
-        balance and generating a transaction record.
+      description: Processes a new transaction, updating the user's current balance
+        and generating a transaction record.
       parameters:
-      - description: 'Insert your access external: Bearer <external>'
+      - description: Bearer <token>
         in: header
         name: Authorization
         required: true
         type: string
-      - description: Payload create wallet transaction user
+      - description: Payload create transaction
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/transaction_dto.CreateTransactionRequest'
+          $ref: '#/definitions/ewallet-transaction_internal_dto_transaction_dto.CreateTransactionRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             allOf:
-            - $ref: '#/definitions/helpers.SuccessResponse'
+            - $ref: '#/definitions/response.SuccessResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/transaction_dto.CreateTransactionResponse'
+                  $ref: '#/definitions/ewallet-transaction_internal_dto_transaction_dto.CreateTransactionResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/helpers.BadRequestResponse'
+            $ref: '#/definitions/response.BadRequestResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/helpers.ErrorResponse'
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/helpers.ErrorResponse'
-      summary: Create Wallet Transaction  User
-schemes:
-- http
-- https
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Transaction
+      tags:
+      - Transaction
 swagger: "2.0"
