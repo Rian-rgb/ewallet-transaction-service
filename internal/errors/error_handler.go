@@ -2,6 +2,7 @@ package errors
 
 import (
 	"errors"
+
 	appErrors "github.com/Rian-rgb/ewallet-common-lib/errors"
 	"github.com/Rian-rgb/ewallet-common-lib/response"
 	"github.com/gin-gonic/gin"

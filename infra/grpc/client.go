@@ -1,11 +1,12 @@
 package grpc
 
 import (
+	"time"
+
 	"github.com/Rian-rgb/ewallet-common-lib/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
-	"time"
 )
 
 type Config struct {

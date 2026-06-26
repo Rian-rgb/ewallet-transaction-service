@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ewallet-transaction/internal/domain/transaction"
+
 	"gorm.io/gorm"
 )
 

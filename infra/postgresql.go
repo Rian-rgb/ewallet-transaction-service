@@ -2,6 +2,7 @@ package infra
 
 import (
 	"ewallet-transaction/internal/domain/transaction"
+
 	"github.com/Rian-rgb/ewallet-common-lib/config"
 	"github.com/Rian-rgb/ewallet-common-lib/database"
 	"github.com/Rian-rgb/ewallet-common-lib/logger"

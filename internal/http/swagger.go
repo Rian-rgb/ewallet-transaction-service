@@ -8,14 +8,13 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title           E Wallet API (Transaction Service)
-// @version         0.0
-// @description     API Service for managing transaction.
-// @description     Features include: craate transaction.
-// @description     <br/><b>Developer:</b> Muhammad Brilian Satria Utama
-// @description     <b>Environment:</b> Development
-// @host            localhost:8082
-// @BasePath        /api/v1
+// @title			E Wallet API (Transaction Service)
+// @version		0.0
+// @description	API Service for managing transaction.
+// @description	<br/><b>Developer:</b> Muhammad Brilian Satria Utama
+// @description	<b>Environment:</b> Development
+// @host			localhost:8082
+// @BasePath		/api/v1
 func registerSwaggerRoutes(router *gin.Engine) {
 	router.GET(
 		"/swagger/*any",

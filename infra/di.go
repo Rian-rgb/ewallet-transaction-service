@@ -6,6 +6,7 @@ import (
 	"ewallet-transaction/internal/handler"
 	"ewallet-transaction/internal/repository"
 	"ewallet-transaction/internal/service"
+
 	pb "github.com/Rian-rgb/ewallet-proto/gen/token_validation/v1"
 )
 

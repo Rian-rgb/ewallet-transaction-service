@@ -8,9 +8,9 @@ import (
 )
 
 type CreateTransactionRequest struct {
-	Amount          float64          `json:"amount" validate:"required,gt=0"`
-	TransactionType transaction.Type `json:"transaction_type" validate:"required,oneof=TOPUP PURCHASE REFUND"`
-	Description     string           `json:"description" validate:"required"`
+	Amount          float64          `json:"amount" validate:"required,gt=0" example:"10000"`
+	TransactionType transaction.Type `json:"transaction_type" validate:"required,oneof=TOPUP PURCHASE REFUND" example:"TOPUP"`
+	Description     string           `json:"description" validate:"required" example:"Top up to buy internet package"`
 }
 
 func (req CreateTransactionRequest) Validate() []response.ValidationErrorField {

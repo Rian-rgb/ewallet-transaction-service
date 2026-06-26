@@ -3,11 +3,12 @@ package ums
 import (
 	"context"
 	internalErrors "ewallet-transaction/internal/errors"
+	"time"
+
 	"github.com/Rian-rgb/ewallet-common-lib/logger"
 	"github.com/Rian-rgb/ewallet-common-lib/response"
 	"github.com/Rian-rgb/ewallet-common-lib/security"
 	pb "github.com/Rian-rgb/ewallet-proto/gen/token_validation/v1"
-	"time"
 )
 
 type Client struct {
