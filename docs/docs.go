@@ -42,7 +42,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Payload create transaction",
+                        "description": "Request Body",
                         "name": "request",
                         "in": "body",
                         "required": true,

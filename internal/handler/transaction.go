@@ -24,7 +24,7 @@ type TransactionHandler struct {
 // @Produce		json
 //
 // @Param		Authorization	header		string										true	"Bearer <token>"
-// @Param		request			body		transaction_dto.CreateTransactionRequest	true	"Payload create transaction"
+// @Param		request			body		transaction_dto.CreateTransactionRequest	true	"Request Body"
 //
 // @Success		201	{object}	response.SuccessResponse{data=transaction_dto.CreateTransactionResponse}	"Created"
 // @Failure		400	{object}	response.BadRequestResponse													"Bad Request"
