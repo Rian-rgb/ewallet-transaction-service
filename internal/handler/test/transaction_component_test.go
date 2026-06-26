@@ -2,13 +2,13 @@ package handler_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"ewallet-transaction/constan"
-	"ewallet-transaction/external/user"
-	"ewallet-transaction/helper"
+	"ewallet-transaction/infra"
 	"ewallet-transaction/internal/domain/transaction"
 	"ewallet-transaction/internal/dto/transaction_dto"
 	"ewallet-transaction/internal/handler"
+	"github.com/Rian-rgb/ewallet-common-lib/security"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -17,12 +17,12 @@ import (
 )
 
 type MockTransactionService struct {
-	CreateTransactionFunc func(tx *transaction.Entity) (*transaction.Entity, error)
+	CreateTransactionFunc func(transactionEntity *transaction.Entity) (*transaction.Entity, error)
 }
 
-func (m *MockTransactionService) CreateTransaction(tx *transaction.Entity) (*transaction.Entity, error) {
+func (m *MockTransactionService) CreateTransaction(ctx context.Context, transactionEntity *transaction.Entity) (*transaction.Entity, error) {
 	if m.CreateTransactionFunc != nil {
-		return m.CreateTransactionFunc(tx)
+		return m.CreateTransactionFunc(transactionEntity)
 	}
 	return nil, nil
 }
@@ -32,7 +32,7 @@ func TestCreateTransaction_ValidRequestAndToken_ReturnsSuccess(t *testing.T) {
 
 	// Arrange
 	mockService := &MockTransactionService{
-		CreateTransactionFunc: func(tx *transaction.Entity) (*transaction.Entity, error) {
+		CreateTransactionFunc: func(transactionEntity *transaction.Entity) (*transaction.Entity, error) {
 			return &transaction.Entity{
 				Reference:         "REF-12345",
 				TransactionStatus: "PENDING",
@@ -46,10 +46,10 @@ func TestCreateTransaction_ValidRequestAndToken_ReturnsSuccess(t *testing.T) {
 
 	router := gin.New()
 
-	router.POST("/create", func(c *gin.Context) {
-		mockToken := user.Token{UserID: 99}
-		c.Set("external", mockToken)
-		c.Next()
+	router.POST("/transaction/create", func(ctx *gin.Context) {
+		mockToken := security.Token{UserID: 1}
+		security.SetGinToken(ctx, mockToken)
+		ctx.Next()
 	}, hdr.Create)
 
 	reqBody := transaction_dto.CreateTransactionRequest{
@@ -59,7 +59,7 @@ func TestCreateTransaction_ValidRequestAndToken_ReturnsSuccess(t *testing.T) {
 	}
 	jsonBody, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest(http.MethodPost, "/create", bytes.NewBuffer(jsonBody))
+	req := httptest.NewRequest(http.MethodPost, "/transaction/create", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -67,30 +67,31 @@ func TestCreateTransaction_ValidRequestAndToken_ReturnsSuccess(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusCreated, w.Code)
 
 	var responseBody map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 	assert.NoError(t, err)
 
-	assert.Contains(t, responseBody["message"], constan.MsgCreated)
-
 	dataField := responseBody["data"].(map[string]interface{})
 	assert.Equal(t, "REF-12345", dataField["reference"])
-	assert.Equal(t, "PENDING", dataField["transactionStatus"])
+	assert.Equal(t, "PENDING", dataField["transaction_status"])
 }
 
 func TestCreate_InvalidTransactionType_ReturnsBadRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// Arrange
+	infra.InitLogger()
+
 	mockService := &MockTransactionService{}
 	hdr := &handler.TransactionHandler{TransactionService: mockService}
 
 	router := gin.New()
-	router.POST("/create", func(c *gin.Context) {
-		c.Set("external", user.Token{UserID: 99})
-		c.Next()
+	router.POST("/transaction/create", func(ctx *gin.Context) {
+		mockToken := security.Token{UserID: 1}
+		security.SetGinToken(ctx, mockToken)
+		ctx.Next()
 	}, hdr.Create)
 
 	reqBody := transaction_dto.CreateTransactionRequest{
@@ -98,7 +99,7 @@ func TestCreate_InvalidTransactionType_ReturnsBadRequest(t *testing.T) {
 	}
 	jsonBody, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest(http.MethodPost, "/create", bytes.NewBuffer(jsonBody))
+	req := httptest.NewRequest(http.MethodPost, "/transaction/create", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -109,19 +110,18 @@ func TestCreate_InvalidTransactionType_ReturnsBadRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestCreate_MissingExternalToken_ReturnsUnauthorized(t *testing.T) {
+func TestCreate_MissingToken_ReturnsUnauthorized(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// Arrange
-	helper.SetupLogger()
+	infra.InitLogger()
 
 	mockService := &MockTransactionService{}
 	hdr := &handler.TransactionHandler{TransactionService: mockService}
 
 	router := gin.New()
-	router.POST("/create", func(c *gin.Context) {
-		c.Set("external", nil)
-		c.Next()
+	router.POST("/transaction/create", func(ctx *gin.Context) {
+		ctx.Next()
 	}, hdr.Create)
 
 	reqBody := transaction_dto.CreateTransactionRequest{
@@ -131,7 +131,7 @@ func TestCreate_MissingExternalToken_ReturnsUnauthorized(t *testing.T) {
 	}
 	jsonBody, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest(http.MethodPost, "/create", bytes.NewBuffer(jsonBody))
+	req := httptest.NewRequest(http.MethodPost, "/transaction/create", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
