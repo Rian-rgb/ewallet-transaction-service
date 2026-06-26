@@ -19,20 +19,20 @@ type TransactionHandler struct {
 
 // @Summary		Create Transaction
 // @Description	Processes a new transaction, updating the user's current balance and generating a transaction record.
-// @Tags			Transaction
-// @Accept			json
+// @Tags		Transaction
+// @Accept		json
 // @Produce		json
 //
-// @Param			Authorization	header		string																		true	"Bearer <token>"
-// @Param			request			body		transaction_dto.CreateTransactionRequest									true	"Payload create transaction"
+// @Param		Authorization	header		string										true	"Bearer <token>"
+// @Param		request			body		transaction_dto.CreateTransactionRequest	true	"Payload create transaction"
 //
-// @Success		201				{object}	response.SuccessResponse{data=transaction_dto.CreateTransactionResponse}	"Created"
-// @Failure		400				{object}	response.BadRequestResponse													"Bad Request"
-// @Failure		401				{object}	response.ErrorResponse														"Unauthorized"
-// @Failure		500				{object}	response.ErrorResponse														"Internal Server Error"
+// @Success		201	{object}	response.SuccessResponse{data=transaction_dto.CreateTransactionResponse}	"Created"
+// @Failure		400	{object}	response.BadRequestResponse													"Bad Request"
+// @Failure		401	{object}	response.ErrorResponse														"Unauthorized"
+// @Failure		500	{object}	response.ErrorResponse														"Internal Server Error"
 //
-// @Security		BearerAuth
-// @Router			/transaction/create [post]
+// @Security	BearerAuth
+// @Router		/transaction/create [post]
 func (hdl *TransactionHandler) Create(ctx *gin.Context) {
 	var (
 		req                 transaction_dto.CreateTransactionRequest
